@@ -1,30 +1,60 @@
 #!/bin/bash
 
+set -x
+set -o
+
+# Removing previous log file and creating new
+rm -rf ./logs/permission_changes.log
+curdate=$(date "+%F-%H-%M-%S")
+logfile="./logs/$curdate.log"
+touch $logfile
+
+
+dry_run=false
+
+if [[ $2 == "--dr" ]]; then
+	dry_run=true
+fi
 
 updateText() {
-	#logger -s "Update text File" > ./logs/permission_changes.log
+	
 	echo "Updating text file: $1"
 	current_perm=$(stat -c "%A" $1)
-	chmod 644 $1
-	next_perm=$(stat -c "%A" $1)
-	echo "Permission for file $1 is changed from $current_perm to $next_perm;" >> ./logs/permission_changes.log
-	
+	if [[ dry_run == false ]]; then
+		chmod 644 $1
+		next_perm=$(stat -c "%A" $1)
+	else
+		next_perm="rw-r--r--"
+	fi
+
+	echo "$(date) Permission for file $1 is changed from $current_perm to $next_perm;" >> $logfile
+
 }
 
 updateConf(){
 	echo "Updating conf file: $1"
 	current_perm=$(stat -c "%A" $1)
-	chmod 544 $1
-	next_perm=$(stat -c "%A" $1)
-	echo "Permission for file $1 is chaned from $current_perm to $next_perm;" >> ./logs/permission_changes.log
+	if [[ dry_run == false ]]; then
+		chmod 544 $1
+		next_perm=$(stat -c "%A" $1)
+	else
+		next_perm="r-xr--r--"
+	fi
+
+	echo "$(date) Permission for file $1 is chaned from $current_perm to $next_perm;" >> $logfile
 }
 
 updateSh(){
 	echo "Updating SH file: $1"
 	current_perm=$(stat -c "%A" $1)
-	chmod 744 $1
-	next_perm=$(stat -c "%A" $1)
-	echo "Permission for file $1 is changed from $current_perm to $next_perm;" >> ./logs/permission_changes.log
+	if [[ dry_run == false ]]; then
+		chmod 744 $1
+		next_perm=$(stat -c "%A" $1)
+	else
+		next_perm="rwxr--r--"
+	fi
+	
+	echo "$(date) Permission for file $1 is changed from $current_perm to $next_perm;" >> $logfile
 }
 
 
